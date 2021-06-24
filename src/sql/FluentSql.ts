@@ -62,7 +62,7 @@ export class FluentSql implements SqlContract {
     return this;
   }
 
-  async build<T>(): Promise<T | any> {
+  async build<T = any>(): Promise<T | any> {
     if(!this.tableName)
       return Promise.reject();
 
@@ -96,9 +96,15 @@ export class FluentSql implements SqlContract {
         .get()
         .then((coll: any) => {
           if(coll.docs){           
-            return  coll.docs?.map((doc: any) => doc.data())      
+            return  coll.docs?.map((doc: any) => ({
+              id: doc.id,
+              ...doc.data()
+            }))
           }
-          return [coll.data()];
+          return [{
+            id: coll.id,
+            ...coll.data()
+          }];
         })
     }
 
@@ -121,13 +127,17 @@ export class FluentSql implements SqlContract {
     }
 
     if(this.query === 'update_query') {
+      if(!this.condition.get('id')) {
+        throw new Error("Para atualizar adicione o metodo 'where(\"id\", \"id_para_atualizar\")")
+      }
+
       const updateObject = {};
 
       [...this._values.entries()].forEach(([key, value]) => {
         Object.assign(updateObject, { [key]: value })
       })
 
-      const id = this._values.get('id');
+      const id = this.condition.get('id');
 
       const [oldData] = await this.select(this.tableName)
         .where(id)
