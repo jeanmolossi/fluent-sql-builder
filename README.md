@@ -1,47 +1,139 @@
-# Getting Started with Create React App
+# Fluent SQL Builder
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Métodos
 
-## Available Scripts
+Pressupondo que você tenha uma instância:
 
-In the project directory, you can run:
+```js
+const fluentQuery = new FluentSql();
+```
 
-### `yarn start`
+Você pode construir das seguintes formas:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```js
+// SELECT - Seleção de Collection/Tabela
+fluentQuery.select("table_name")
+  .where("key", "value") // BUSCA COM CONDICIONAL
+  .orderBy("key", "ASC") // ORDENAÇÃO POR CHAVE - ASC ou DESC
+  .buid() // EXECUTA DE FATO A QUERY
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+// INSERT INTO - Inserção na Collection/Tabela
+fluentQuery.insert("table_name")
+  // COLUNAS E VALORES A SEREM INSERIDOS
+  .values("key", "value")
+  .values("key-2", "value-2")
+  .build() // EXECUTA DE FATO A QUERY
 
-### `yarn test`
+// UPDATE - Atualizaçao na Collection/Tabela
+fluentQuery.update("table_name")
+  // COMPOSICÃO OBRIGATÓRIA PARA FAZER O UPDATE
+  .where("id", "id_para_update")
+  .values("key", "updated-value")
+  .build() // EXECUTA DE FATO A QUERY
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Exemplos de Uso
 
-### `yarn build`
+**SQL de inserção:**
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```js
+const fluentQuery = new FluentSql();
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+fluentQuery
+  .insert("table_name")
+  .values("key", "value")
+  .values("key2", "value-2")
+  .build()
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Isso irá inserir o objeto:
 
-### `yarn eject`
+```js
+// table_name
+{
+  "key": "value",
+  "key2": "value-2",
+  "createdAt": 1624507177889,
+  "updatedAt": 1624507177889
+}
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+**SQL de consulta:**
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```js
+const fluentQuery = new FluentSql();
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+fluentQuery
+  .select("table_name")
+  .where("key", "value")
+  .orderBy("createdAt", "DESC")
+  .build()
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+Isso irá retornar o **array**:
 
-## Learn More
+```js
+// table_name
+[
+  {
+    "id": "ww7oBaHTV1SeWA5mRuAo",
+    "key": "value",
+    "key2": "value-2",
+    "createdAt": 1624507177889,
+    "updatedAt": 1624507177889
+  }
+]
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+**SQL de Atualização:**
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-# fluent-sql-builder
+```js
+const fluentQuery = new FluentSql();
+
+fluentQuery
+  .update("table_name")
+   // O WHERE COM A KEY id É OBRIGATÓRIO NO UPDATE
+  .where("id", "ww7oBaHTV1SeWA5mRuAo")
+  .values("key", "value-atualizado")
+  .build()
+```
+
+Isso irá retornar o objeto:
+
+```js
+// table_name
+{
+  "id": "ww7oBaHTV1SeWA5mRuAo",
+  "key": "value-atualizado",
+  "key2": "value-2",
+  "createdAt": 1624507177889,
+  "updatedAt": 1624507217108
+}
+```
+
+**SQL Listener:**
+
+```js
+const fluentQuery = new FluentSql();
+
+const [keyListener, setKeyListener] = useState({});
+
+fluentQuery
+  .select("table_name")
+  .where("id", "ww7oBaHTV1SeWA5mRuAo")
+  .orderBy("createdAt", "DESC")
+  .listener(setKeyListener)
+```
+
+Isso irá syncronizar o objeto:
+
+```js
+// table_name
+{
+  "id": "ww7oBaHTV1SeWA5mRuAo",
+  "key": "value-atualizado",
+  "key2": "value-2",
+  "createdAt": 1624507177889,
+  "updatedAt": 1624507217108
+}
+```
